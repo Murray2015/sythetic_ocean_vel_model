@@ -7,12 +7,12 @@ Created on Tue Sep 11 20:09:37 2018
 
 # Global vars 
 watervel = 1500.0
-time_sample_rate = 0.005 
+time_sample_rate = 0.02
 record_length_s = 19
 bathyfilename="extracted_bathy_profiles/L1.1.su_geom_jc007_EM120_an_bathy13-14_profile.txt"
 #outfile=".".join(bathyfilename.split(".")[0:2])
 outfile="L1.1"
-extract_every_ith_col = 10 # Take every ith column (CDP) of the full vel model. Used for downsampling. 
+extract_every_ith_col = 100 # Take every ith column (CDP) of the full vel model. Used for downsampling. 
 
 # Import dependencies 
 import numpy as np 
@@ -26,7 +26,7 @@ seaf = np.append(seaf, np.reshape(seaf_t, (seaf_t.shape[0], 1)), axis=1) # Conve
 num_shotpoints = seaf.shape[0]
 
 # In future, change this for sample rate 
-num_t_samples = record_length_s / time_sample_rate  # should be 19000, given a 0.0002 second sample rate and 19s seis line. 
+num_t_samples = record_length_s / time_sample_rate  
 
 # make matrix to hold vel model.
 mat = np.ones((num_t_samples, num_shotpoints))
@@ -67,14 +67,14 @@ out = np.column_stack((C.ravel(),R.ravel(), outmat.ravel()))
 np.savetxt(fname="vel_model_" + outfile + "_downsamp.txt", X=out)
 
 print("Finished building model. Making fig...")
-def nocall():
-	# Plot matrix to sanity check
-	plt.figure(figsize=(16, 8), dpi=50, facecolor='w', edgecolor='k')
-	plt.imshow(mat, aspect="auto", cmap="inferno")
-	plt.colorbar().set_label("Seismic velocity (m/s)")
-	plt.contour(mat, colors="black")
-	plt.xlabel("Trace number from 0")
-	plt.ylabel("Time sample")
-	plt.tight_layout()
-	#plt.savefig("vel_model.jpg")
-	plt.show()
+
+# Plot matrix to sanity check
+plt.figure(figsize=(16, 8), dpi=50, facecolor='w', edgecolor='k')
+plt.imshow(mat, aspect="auto", cmap="inferno")
+plt.colorbar().set_label("Seismic velocity (m/s)")
+plt.contour(mat, colors="black")
+plt.xlabel("Trace number from 0")
+plt.ylabel("Time sample number")
+plt.tight_layout()
+#plt.savefig("vel_model.jpg")
+plt.show()
