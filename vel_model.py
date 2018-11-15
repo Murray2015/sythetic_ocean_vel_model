@@ -5,13 +5,14 @@ Created on Tue Sep 11 20:09:37 2018
 @author: Murray Hoggett, murrayhoggett@gmail.com 
 """
 
-
 # Global vars 
 watervel = 1500.0
-time_sample_rate = 0.001
+time_sample_rate = 0.005 
 record_length_s = 19
-num_t_samples = 10000  # should be 95000, given a 0.0002 second sample rate and 19s seis line. 
-bathyfilename="jc007_EM120_an_bathy13-14_profile.txt"
+bathyfilename="extracted_bathy_profiles/L1.1.su_geom_jc007_EM120_an_bathy13-14_profile.txt"
+#outfile=".".join(bathyfilename.split(".")[0:2])
+outfile="L1.1"
+extract_every_ith_col = 10 # Take every ith column (CDP) of the full vel model. Used for downsampling. 
 
 # Import dependencies 
 import numpy as np 
@@ -25,7 +26,7 @@ seaf = np.append(seaf, np.reshape(seaf_t, (seaf_t.shape[0], 1)), axis=1) # Conve
 num_shotpoints = seaf.shape[0]
 
 # In future, change this for sample rate 
-num_t_samples = 8000 #record_length_s / time_sample_rate  # should be 19000, given a 0.0002 second sample rate and 19s seis line. 
+num_t_samples = record_length_s / time_sample_rate  # should be 19000, given a 0.0002 second sample rate and 19s seis line. 
 
 # make matrix to hold vel model.
 mat = np.ones((num_t_samples, num_shotpoints))
@@ -45,24 +46,35 @@ print(seaf)
 # Build matrix
 print("Building velocity model....")
 # For each seismic trace 
-for i in range(mat.shape[1]):   
+for i in range(mat.shape[1]):
     # Find the seafloor time in terms of the sample rate
     seaf_time_in_samprate = int(seaf[i,3] / time_sample_rate)
     mat[0:seaf_time_in_samprate, i] = watervel
     mat[seaf_time_in_samprate:seaf_time_in_samprate+len(func), i] = func
-    mat[seaf_time_in_samprate+len(func):-1, i] = np.max(func)
+    mat[seaf_time_in_samprate+len(func):, i] = np.max(func)
 
-print(mat.shape)
-np.savetxt(fname="vel_model.txt", X=mat)
+# Downsample by taking every ith column 
+outmat = mat[:,::extract_every_ith_col]
+print(outmat.shape)
+np.savetxt(fname="vel_model_" + outfile + ".txt", X=outmat)
+
+# Try to output as xyz 
+m,n = outmat.shape
+R,C = np.mgrid[:m,:n]
+R = R.astype("float64") * 0.005
+C *= extract_every_ith_col
+out = np.column_stack((C.ravel(),R.ravel(), outmat.ravel()))
+np.savetxt(fname="vel_model_" + outfile + "_downsamp.txt", X=out)
+
 print("Finished building model. Making fig...")
-
-# Plot matrix to sanity check
-plt.figure(figsize=(16, 8), dpi=50, facecolor='w', edgecolor='k')
-plt.imshow(mat, aspect="auto", cmap="inferno")
-plt.colorbar().set_label("Seismic velocity (m/s)")
-plt.contour(mat, colors="black")
-plt.xlabel("Trace number from 0")
-plt.ylabel("Time sample")
-plt.tight_layout()
-#plt.savefig("vel_model.jpg")
-plt.show()
+def nocall():
+	# Plot matrix to sanity check
+	plt.figure(figsize=(16, 8), dpi=50, facecolor='w', edgecolor='k')
+	plt.imshow(mat, aspect="auto", cmap="inferno")
+	plt.colorbar().set_label("Seismic velocity (m/s)")
+	plt.contour(mat, colors="black")
+	plt.xlabel("Trace number from 0")
+	plt.ylabel("Time sample")
+	plt.tight_layout()
+	#plt.savefig("vel_model.jpg")
+	plt.show()
