@@ -35,4 +35,6 @@ paste ${i} ${i}.RMS.txt > ${i}.INT.RMS.txt
 cat ${i}.INT.RMS.txt >> ${vel_mod}_master.txt
 done
 
+rm *.b temp *00.txt *txt.RMS*
+
 exit 

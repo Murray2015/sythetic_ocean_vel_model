@@ -70,6 +70,7 @@ np.savetxt(fname="vel_model_" + outfile + "_downsamp_x_y_vint.txt", X=out, fmt='
 out2 = np.column_stack((R.ravel(order="F"), C.ravel(order="F"), outmat.ravel(order="F")))
 np.savetxt(fname="vel_model_" + outfile + "_downsamp_y_x_vint.txt", X=out2, fmt='%f')
 
+
 print("Finished building model. Making fig...")
 # Plot matrix to sanity check
 plt.figure(figsize=(16, 8), dpi=50, facecolor='w', edgecolor='k')
